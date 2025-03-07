@@ -1,42 +1,52 @@
 package com.example.SpringAddressBookApp.service;
 
 import com.example.SpringAddressBookApp.model.Contact;
-import com.example.SpringAddressBookApp.repository.ContactRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class ContactServiceImpl implements ContactService {
 
-    @Autowired
-    private ContactRepository contactRepository;
+    private final List<Contact> contactList = new ArrayList<>();
+    private final AtomicLong idCounter = new AtomicLong();
 
     @Override
     public Contact addContact(Contact contact) {
-        return contactRepository.save(contact);
+        contact.setId(idCounter.incrementAndGet());
+        contactList.add(contact);
+        return contact;
     }
 
     @Override
     public List<Contact> getAllContacts() {
-        return contactRepository.findAll();
+        return contactList;
     }
 
     @Override
     public Contact getContactById(Long id) {
-        return contactRepository.findById(id).orElse(null);
+        return contactList.stream()
+                .filter(contact -> contact.getId().equals(id))
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
     public Contact updateContact(Long id, Contact contact) {
-        contact.setId(id);
-        return contactRepository.save(contact);
+        for (int i = 0; i < contactList.size(); i++) {
+            if (contactList.get(i).getId().equals(id)) {
+                contact.setId(id);
+                contactList.set(i, contact);
+                return contact;
+            }
+        }
+        return null;
     }
 
     @Override
     public void deleteContact(Long id) {
-        contactRepository.deleteById(id);
+        contactList.removeIf(contact -> contact.getId().equals(id));
     }
-//    postman API  http://localhost:8080/api/contacts
 }

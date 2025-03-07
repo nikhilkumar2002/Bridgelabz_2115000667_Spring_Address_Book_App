@@ -35,7 +35,9 @@ public class ContactController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Contact> updateContact(@PathVariable Long id, @RequestBody Contact contact) {
-        return new ResponseEntity<>(contactService.updateContact(id, contact), HttpStatus.OK);
+        Contact updatedContact = contactService.updateContact(id, contact);
+        return updatedContact != null ? new ResponseEntity<>(updatedContact, HttpStatus.OK) :
+                new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @DeleteMapping("/{id}")
