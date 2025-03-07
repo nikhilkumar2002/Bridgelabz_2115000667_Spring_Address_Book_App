@@ -1,7 +1,8 @@
 package com.example.SpringAddressBookApp.controller;
 
+import com.example.SpringAddressBookApp.dto.ContactDTO;
 import com.example.SpringAddressBookApp.model.Contact;
-import com.example.SpringAddressBookApp.repository.ContactRepository;
+import com.example.SpringAddressBookApp.service.ContactService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,49 +15,42 @@ import java.util.List;
 public class ContactController {
 
     @Autowired
-    private ContactRepository contactRepository;
+    private ContactService contactService;
 
     // GET all contacts
     @GetMapping
     public ResponseEntity<List<Contact>> getAllContacts() {
-        return new ResponseEntity<>(contactRepository.findAll(), HttpStatus.OK);
+        return new ResponseEntity<>(contactService.getAllContacts(), HttpStatus.OK);
     }
 
     // GET contact by ID
     @GetMapping("/{id}")
     public ResponseEntity<Contact> getContactById(@PathVariable Long id) {
-        return contactRepository.findById(id)
-                .map(contact -> new ResponseEntity<>(contact, HttpStatus.OK))
-                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        Contact contact = contactService.getContactById(id);
+        return contact != null ?
+                new ResponseEntity<>(contact, HttpStatus.OK) :
+                new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    // POST create new contact
+    // POST to add a new contact
     @PostMapping
-    public ResponseEntity<Contact> createContact(@RequestBody Contact contact) {
-        return new ResponseEntity<>(contactRepository.save(contact), HttpStatus.CREATED);
+    public ResponseEntity<Contact> addContact(@RequestBody ContactDTO contactDTO) {
+        return new ResponseEntity<>(contactService.addContact(contactDTO), HttpStatus.CREATED);
     }
 
-    // PUT update contact by ID
+    // PUT to update contact by ID
     @PutMapping("/{id}")
-    public ResponseEntity<Contact> updateContact(@PathVariable Long id, @RequestBody Contact updatedContact) {
-        return contactRepository.findById(id)
-                .map(contact -> {
-                    contact.setName(updatedContact.getName());
-                    contact.setEmail(updatedContact.getEmail());
-                    contact.setPhone(updatedContact.getPhone());
-                    return new ResponseEntity<>(contactRepository.save(contact), HttpStatus.OK);
-                })
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    public ResponseEntity<Contact> updateContact(@PathVariable Long id, @RequestBody ContactDTO contactDTO) {
+        Contact updatedContact = contactService.updateContact(id, contactDTO);
+        return updatedContact != null ?
+                new ResponseEntity<>(updatedContact, HttpStatus.OK) :
+                new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
-
 
     // DELETE contact by ID
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteContact(@PathVariable Long id) {
-        if (contactRepository.existsById(id)) {
-            contactRepository.deleteById(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        contactService.deleteContact(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }
