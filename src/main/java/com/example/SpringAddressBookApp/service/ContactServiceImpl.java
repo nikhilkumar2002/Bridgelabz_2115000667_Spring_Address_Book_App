@@ -1,52 +1,49 @@
 package com.example.SpringAddressBookApp.service;
 
 import com.example.SpringAddressBookApp.model.Contact;
+import com.example.SpringAddressBookApp.repository.ContactRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Optional;
 
 @Service
 public class ContactServiceImpl implements ContactService {
 
-    private final List<Contact> contactList = new ArrayList<>();
-    private final AtomicLong idCounter = new AtomicLong();
+    @Autowired
+    private ContactRepository contactRepository;
 
     @Override
     public Contact addContact(Contact contact) {
-        contact.setId(idCounter.incrementAndGet());
-        contactList.add(contact);
-        return contact;
+        return contactRepository.save(contact);  // ✅ Saves to MySQL
     }
 
     @Override
     public List<Contact> getAllContacts() {
-        return contactList;
+        return contactRepository.findAll();  // ✅ Retrieves from MySQL
     }
 
     @Override
     public Contact getContactById(Long id) {
-        return contactList.stream()
-                .filter(contact -> contact.getId().equals(id))
-                .findFirst()
-                .orElse(null);
+        return contactRepository.findById(id).orElse(null);  // ✅ Finds in MySQL
     }
 
     @Override
     public Contact updateContact(Long id, Contact contact) {
-        for (int i = 0; i < contactList.size(); i++) {
-            if (contactList.get(i).getId().equals(id)) {
-                contact.setId(id);
-                contactList.set(i, contact);
-                return contact;
-            }
+        Optional<Contact> existingContact = contactRepository.findById(id);
+        if (existingContact.isPresent()) {
+            Contact updatedContact = existingContact.get();
+            updatedContact.setName(contact.getName());
+            updatedContact.setEmail(contact.getEmail());
+            updatedContact.setPhone(contact.getPhone());
+            return contactRepository.save(updatedContact);  // ✅ Updates MySQL
         }
         return null;
     }
 
     @Override
     public void deleteContact(Long id) {
-        contactList.removeIf(contact -> contact.getId().equals(id));
+        contactRepository.deleteById(id);  // ✅ Deletes from MySQL
     }
 }
