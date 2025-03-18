@@ -17,7 +17,7 @@ public class SecurityConfig {
                 // Disable CORS completely
                 // Enable CORS with credentials
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**", "/auth/register", "/auth/login", "/api/contacts/**").permitAll()  // Allow H2 console and auth endpoints
+                        .requestMatchers("/h2-console/**", "/auth/**", "/auth/register", "/auth/login", "/api/contacts/**").permitAll()  // Allow H2 console and auth endpoints
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions(config -> config.disable()));  // Allow H2 frames
